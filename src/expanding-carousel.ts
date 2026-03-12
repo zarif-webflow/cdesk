@@ -19,20 +19,26 @@ const initExpandingCarousel = () => {
 
   for (const carouselWrap of allCarouselWrappers) {
     const carouselNode = getHtmlElement({
-      selector: "[exp-carousel=node]",
+      selector: "[exp-carousel=trackpad]",
       parent: carouselWrap,
       log: "error",
     });
 
     if (!carouselNode) continue;
 
-    const allSlideElements = getMultipleHtmlElements({
-      selector: "[exp-carousel=slide]",
-      parent: carouselNode,
-      log: "error",
-    });
+    const carouselContainer = carouselNode.firstElementChild as HTMLElement | null;
 
-    if (!allSlideElements) continue;
+    if (!carouselContainer) {
+      console.error(`Carousel container not found for carousel:`, carouselNode);
+      continue;
+    }
+
+    const allSlideElements = (Array.from(carouselContainer.children) || []) as HTMLElement[];
+
+    if (allSlideElements.length === 0) {
+      console.error(`No slide elements found for carousel:`, carouselNode);
+      continue;
+    }
 
     const slidesLength = allSlideElements.length;
 
@@ -40,175 +46,48 @@ const initExpandingCarousel = () => {
     const middleIndex = Math.floor((slidesLength - 1) / 2);
     const startIndex = Number.isNaN(startIndexParsed) ? middleIndex : startIndexParsed;
 
-    const options: EmblaOptionsType = {
-      loop: false,
-      align: "center",
-      breakpoints: {
-        "(min-width: 992px)": { watchDrag: false },
-      },
-      startIndex,
-      slides: allSlideElements,
-    };
-    const emblaApi = EmblaCarousel(carouselNode, options);
+    let activeIndex = startIndex;
 
-    /**
-     * Elements
-     */
-    const slideNodes = emblaApi.slideNodes();
-    const nextButtons =
-      getMultipleHtmlElements({ selector: "[exp-carousel=next]", parent: carouselWrap }) || [];
-    const prevButtons =
-      getMultipleHtmlElements({ selector: "[exp-carousel=prev]", parent: carouselWrap }) || [];
+    const setupExpandingLogic = () => {
+      const abortController = new AbortController();
 
-    /**
-     * States
-     */
-    let activeSlideIndex = middleIndex;
-    let activeSlideElement: HTMLElement | undefined = undefined;
+      for (let slideIndex = 0; slideIndex < allSlideElements.length; slideIndex++) {
+        const slide = allSlideElements[slideIndex];
 
-    /**
-     * Functions
-     */
+        slide.addEventListener(
+          "click",
+          () => {
+            if (activeIndex === slideIndex) return;
 
-    const setActiveSlide = (slideElIndex: number) => {
-      if (slideElIndex === activeSlideIndex) return;
+            const flipState = Flip.getState(allSlideElements, { props: "flex" });
 
-      // Elements
-      const slideEl = slideNodes.at(slideElIndex)!;
+            for (const otherSlide of allSlideElements) {
+              otherSlide.classList.remove("is-active");
+            }
 
-      const slideContentEl = getAssertedHtmlElement(".exp-slide-content", slideEl);
-      const slideElVideo = slideEl.querySelector<HTMLVideoElement>("video");
-      const prevActiveSlideVideo = activeSlideElement?.querySelector<HTMLVideoElement>("video");
-      const prevActiveSlideContent = activeSlideElement
-        ? getAssertedHtmlElement(".exp-slide-content", activeSlideElement)
-        : undefined;
+            slide.classList.add("is-active");
 
-      // Scroll to the current active slide
-      emblaApi.scrollTo(slideElIndex);
+            Flip.from(flipState, { duration: 0.4, ease: "power1.inOut", absolute: true });
 
-      let flipState: Flip.FlipState | undefined = undefined;
-
-      mm.add("(min-width: 992px)", () => {
-        // Gsap Flip State
-        flipState = Flip.getState(slideNodes, { props: "flex" });
-      });
-
-      // Remove the previous active slide and pause it's video
-      activeSlideElement?.classList.remove("is-active");
-      prevActiveSlideVideo?.pause();
-
-      if (prevActiveSlideContent)
-        gsap.to(prevActiveSlideContent, {
-          x: "100%",
-          opacity: 0,
-        });
-
-      // Add the active class and play the video
-      slideEl.classList.add("is-active");
-
-      let matchedMedia: boolean = false;
-
-      mm.add("(min-width: 992px)", () => {
-        matchedMedia = true;
-        if (flipState)
-          Flip.from(flipState, {
-            duration: 0.4,
-            ease: "power1.inOut",
-            onComplete: () => {
-              gsap.fromTo(
-                slideContentEl,
-                {
-                  x: "100%",
-                  opacity: 0,
-                  visibility: "hidden",
-                },
-                {
-                  x: "0%",
-                  opacity: 1,
-                  visibility: "visible",
-                }
-              );
-            },
-          });
-      });
-
-      if (!matchedMedia) {
-        gsap.fromTo(
-          slideContentEl,
-          {
-            x: "100%",
-            opacity: 0,
-            visibility: "hidden",
+            activeIndex = slideIndex;
           },
-          {
-            x: "0%",
-            opacity: 1,
-            visibility: "visible",
-          }
+          { signal: abortController.signal }
         );
-
-        // if (prevActiveSlideContent)
-        //   gsap.to(prevActiveSlideContent, {
-        //     visibility: 'hidden',
-        //   });
       }
-      // Reassign the active slide
-      activeSlideElement = slideEl;
-      activeSlideIndex = slideElIndex;
 
-      if (!slideElVideo) return;
-
-      slideElVideo.play();
+      return () => {
+        abortController.abort();
+      };
     };
 
-    /**
-     * Register event listeners in a loop
-     */
-    for (let i = 0; i < slideNodes.length; i++) {
-      const slideEl = slideNodes.at(i)!;
+    let destroyExpandingLogic: (() => void) | null = null;
 
-      const slideContentEl = getAssertedHtmlElement(".exp-slide-content", slideEl);
+    mm.add("(max-width: 992px)", () => {
+      destroyExpandingLogic?.();
+    });
 
-      const slideElVideo = slideEl.querySelector<HTMLVideoElement>("video");
-
-      // Play the video at first page load, if it exists on active slide
-      if (slideEl.classList.contains("is-active")) {
-        slideElVideo?.play();
-        activeSlideElement = slideEl;
-        activeSlideIndex = i;
-        slideContentEl.style.visibility = "visible";
-      } else {
-        slideContentEl.style.visibility = "hidden";
-      }
-
-      slideEl.addEventListener("click", () => {
-        mm.add("(min-width: 992px)", () => {
-          setActiveSlide(i);
-        });
-      });
-    }
-
-    for (const nextButton of nextButtons) {
-      nextButton.addEventListener("click", (e) => {
-        e.stopPropagation();
-        if (activeSlideIndex >= slideNodes.length - 1) return;
-
-        setActiveSlide(activeSlideIndex + 1);
-      });
-    }
-
-    for (const prevButton of prevButtons) {
-      prevButton.addEventListener("click", (e) => {
-        e.stopPropagation();
-        if (activeSlideIndex === 0) return;
-
-        setActiveSlide(activeSlideIndex - 1);
-      });
-    }
-
-    emblaApi.on("select", (evt) => {
-      const activeSlideIndex = evt.internalEngine().index.get();
-      setActiveSlide(activeSlideIndex);
+    mm.add("(min-width: 992px)", () => {
+      destroyExpandingLogic = setupExpandingLogic();
     });
   }
 };
