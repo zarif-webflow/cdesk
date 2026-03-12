@@ -133,6 +133,11 @@ const initExpandingCarousel = () => {
     };
 
     const setupCarousel = () => {
+      const abortController = new AbortController();
+
+      const nextButton = getHtmlElement({ selector: "[carousel-next]", parent: carouselWrap });
+      const prevButton = getHtmlElement({ selector: "[carousel-prev ]", parent: carouselWrap });
+
       const options: EmblaOptionsType = {
         loop: true,
         align: "center",
@@ -152,8 +157,16 @@ const initExpandingCarousel = () => {
         activeIndex = selectedSlideIndex;
       });
 
+      nextButton?.addEventListener("click", () => emblaApi.scrollNext(), {
+        signal: abortController.signal,
+      });
+      prevButton?.addEventListener("click", () => emblaApi.scrollPrev(), {
+        signal: abortController.signal,
+      });
+
       return () => {
         emblaApi.destroy();
+        abortController.abort();
       };
     };
 
