@@ -52,13 +52,44 @@ const initExpandingCarousel = () => {
     let destroyCarousel: (() => void) | null = null;
 
     const setActiveSlide = (slideIndex: number) => {
-      const slide = allSlideElements[slideIndex];
+      const targetSlide = allSlideElements[slideIndex];
 
-      for (const otherSlide of allSlideElements) {
-        otherSlide.classList.remove("is-active");
+      for (const slide of allSlideElements) {
+        const descWrap = getHtmlElement({
+          selector: "[exp-carousel=desc-wrap]",
+          parent: slide,
+          log: "error",
+        });
+
+        if (!descWrap) continue;
+
+        const otherClassTrigElements = getMultipleHtmlElements({
+          selector: "[exp-carousel=trig-active-class]",
+          log: "error",
+          parent: slide,
+        });
+
+        if (slide === targetSlide) {
+          targetSlide.classList.add("is-active");
+          otherClassTrigElements?.forEach((el) => el.classList.add("is-active"));
+          gsap.fromTo(
+            descWrap,
+            { y: "101%", opacity: 0 },
+            { y: "0%", opacity: 1, duration: 0.4, ease: "power1.inOut" }
+          );
+          continue;
+        }
+
+        if (slide.classList.contains("is-active")) {
+          slide.classList.remove("is-active");
+          otherClassTrigElements?.forEach((el) => el.classList.remove("is-active"));
+          gsap.fromTo(
+            descWrap,
+            { y: "0%", opacity: 1 },
+            { y: "101%", opacity: 0, duration: 0.4, ease: "power1.inOut" }
+          );
+        }
       }
-
-      slide.classList.add("is-active");
     };
 
     const setupExpandingLogic = () => {
