@@ -20,6 +20,9 @@ const initProductQuoteDisplay = () => {
   const initialImageUrl = image.src;
   let currentlyDisplayedImageUrl = image.src;
 
+  image.srcset = "";
+  image.sizes = "";
+
   const setImage = (imageUrl: string) => {
     if (imageUrl === currentlyDisplayedImageUrl) return;
 
