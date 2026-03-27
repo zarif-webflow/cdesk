@@ -173,6 +173,12 @@ export const initMsForm = () => {
       currentStep = nextStep;
 
       adjustControlButtons();
+
+      formWrapper.dispatchEvent(
+        new CustomEvent("step-changed", {
+          detail: { currentStep },
+        })
+      );
     };
 
     const goToPrevStep = () => {
@@ -192,6 +198,12 @@ export const initMsForm = () => {
       currentStep = prevStep;
 
       adjustControlButtons();
+
+      formWrapper.dispatchEvent(
+        new CustomEvent("step-changed", {
+          detail: { currentStep },
+        })
+      );
     };
 
     const handleInputValidation = ({ formStep }: { formStep: HTMLElement }) => {
@@ -346,6 +358,12 @@ export const initMsForm = () => {
 
           radioLabel.classList.add("is-selected");
           prevRadioLabel?.classList.remove("is-selected");
+
+          formWrapper.dispatchEvent(
+            new CustomEvent("radio-selected", {
+              detail: { radioButton },
+            })
+          );
         });
       }
     };
