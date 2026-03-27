@@ -22,6 +22,8 @@ export const initHeroCarousel = () => {
       continue;
     }
 
+    carouselContainer.style.justifyContent = "left";
+
     const allSlideElements = (Array.from(carouselContainer.children) || []) as HTMLElement[];
 
     if (allSlideElements.length === 0) {
