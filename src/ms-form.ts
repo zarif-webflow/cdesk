@@ -31,7 +31,7 @@ export const initMsForm = () => {
       parent: formWrapper,
       log: "error",
     });
-    const submitButtonOriginal = getHtmlElement({
+    const submitButtonOriginal = getHtmlElement<HTMLButtonElement>({
       selector: "[ms-form=submit]",
       parent: formWrapper,
       log: "error",
@@ -50,6 +50,7 @@ export const initMsForm = () => {
     const submitButton = submitButtonOriginal.cloneNode(true) as HTMLButtonElement;
 
     submitButton.type = "button";
+    submitButton.disabled = false;
 
     submitButtonOriginal.replaceWith(submitButton);
 
@@ -305,22 +306,24 @@ export const initMsForm = () => {
           parent: form,
         }) || [];
 
-      const proxyCheckboxInputs = (
-        getMultipleHtmlElements<HTMLInputElement>({
-          selector: 'input[type="checkbox"][ms-target-input-name]',
-          parent: form,
-        }) || []
-      ).filter((checkbox) => checkbox.getAttribute("ms-target-input-name") !== null);
+      // const proxyCheckboxInputs = (
+      //   getMultipleHtmlElements<HTMLInputElement>({
+      //     selector: 'input[type="checkbox"][ms-target-input-name]',
+      //     parent: form,
+      //   }) || []
+      // ).filter((checkbox) => checkbox.getAttribute("ms-target-input-name") !== null);
 
       disabledFormSteps.forEach((step) => {
         step.remove();
       });
 
-      proxyCheckboxInputs.forEach((checkbox) => {
-        checkbox.remove();
-      });
+      // proxyCheckboxInputs.forEach((checkbox) => {
+      //   checkbox.remove();
+      // });
 
       submitButton.replaceWith(submitButtonOriginal);
+
+      submitButtonOriginal.disabled = false;
 
       submitButtonOriginal.click();
     };
@@ -388,6 +391,7 @@ export const initMsForm = () => {
       }
     };
 
+    /*
     const setupCheckboxes = () => {
       const allCheckboxes =
         getMultipleHtmlElements<HTMLInputElement>({
@@ -442,8 +446,9 @@ export const initMsForm = () => {
         });
       }
     };
+    */
 
     setupRadioButtons();
-    setupCheckboxes();
+    // setupCheckboxes();
   }
 };

@@ -23,8 +23,6 @@ const initProductQuoteDisplay = () => {
   const setImage = (imageUrl: string) => {
     if (imageUrl === currentlyDisplayedImageUrl) return;
 
-    displayContainer.appendChild(imageLoader);
-
     image.src = imageUrl;
 
     currentlyDisplayedImageUrl = imageUrl;
@@ -32,6 +30,7 @@ const initProductQuoteDisplay = () => {
     if (image.complete) {
       fragment.appendChild(imageLoader);
     } else {
+      displayContainer.appendChild(imageLoader);
       image.addEventListener(
         "load",
         () => {
