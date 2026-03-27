@@ -2,6 +2,10 @@
 new EventSource(`${"http://localhost:3000"}/esbuild`).addEventListener("change", () => location.reload());
 
 // node_modules/.pnpm/@taj-wf+utils@1.3.0/node_modules/@taj-wf/utils/dist/index.js
+var afterWebflowReady = (callback) => {
+  window.Webflow ||= [];
+  window.Webflow.push(callback);
+};
 var getHtmlElement = ({
   selector,
   parent,
@@ -71,8 +75,9 @@ var getGsap = (plugins = [], log = "error") => {
 window.wfCustomPageLoadFeatures ||= {};
 
 export {
+  afterWebflowReady,
   getHtmlElement,
   getMultipleHtmlElements,
   getGsap
 };
-//# sourceMappingURL=chunk-TE6JR2D2.js.map
+//# sourceMappingURL=chunk-WPRPIVXY.js.map

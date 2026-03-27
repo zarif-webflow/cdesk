@@ -1,7 +1,7 @@
 import { getHtmlElement, getMultipleHtmlElements } from "@taj-wf/utils";
 import EmblaCarousel, { type EmblaOptionsType } from "embla-carousel";
 
-const initHeroCarousel = () => {
+export const initHeroCarousel = () => {
   const allCarouselWrappers = getMultipleHtmlElements({ selector: "[hero-carousel=wrap]" });
 
   if (!allCarouselWrappers) return;
@@ -91,5 +91,3 @@ const initHeroCarousel = () => {
     });
   }
 };
-
-initHeroCarousel();

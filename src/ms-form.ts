@@ -1,6 +1,6 @@
 import { getGsap, getHtmlElement, getMultipleHtmlElements } from "@taj-wf/utils";
 
-const initMsForm = () => {
+export const initMsForm = () => {
   const [gsap, Flip] = getGsap(["Flip"]);
 
   if (!gsap || !Flip) {
@@ -409,5 +409,3 @@ const initMsForm = () => {
     setupCheckboxes();
   }
 };
-
-initMsForm();

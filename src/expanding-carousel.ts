@@ -1,7 +1,7 @@
 import { getGsap, getHtmlElement, getMultipleHtmlElements } from "@taj-wf/utils";
 import EmblaCarousel, { type EmblaOptionsType } from "embla-carousel";
 
-const initExpandingCarousel = () => {
+export const initExpandingCarousel = () => {
   const [gsap, Flip] = getGsap(["Flip"]);
 
   if (!gsap || !Flip) return;
@@ -185,5 +185,3 @@ const initExpandingCarousel = () => {
     });
   }
 };
-
-initExpandingCarousel();
