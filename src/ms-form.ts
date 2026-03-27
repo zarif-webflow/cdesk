@@ -353,6 +353,26 @@ export const initMsForm = () => {
           console.error("Missing label for radio button", radioButton);
           return;
         }
+
+        radioLabel.addEventListener("mousedown", () => {
+          radioButton.setAttribute("was-checked", radioButton.checked.toString());
+        });
+
+        radioLabel.addEventListener("click", () => {
+          const prevStep = stepsHistory.at(-2)!;
+
+          if (radioButton.getAttribute("was-checked") === "true") {
+            radioButton.checked = false;
+            radioLabel.classList.remove("is-selected");
+
+            formWrapper.dispatchEvent(
+              new CustomEvent("radio-deselected", {
+                detail: { prevStep: prevStep || null },
+              })
+            );
+          }
+        });
+
         radioButton.addEventListener("change", () => {
           const prevRadioLabel = radioLabel.parentElement?.querySelector("label.is-selected");
 

@@ -17,20 +17,17 @@ const initProductQuoteDisplay = () => {
   if (!displayContainer) return;
 
   const fragment = document.createDocumentFragment();
+  const initialImageUrl = image.src;
   let currentlyDisplayedImageUrl = image.src;
 
-  const updateDisplayedImage = (radioButton: HTMLInputElement) => {
-    const displayImageUrl = radioButton.getAttribute("display-image")?.trim();
-
-    if (!displayImageUrl) return;
-
-    if (displayImageUrl === currentlyDisplayedImageUrl) return;
+  const setImage = (imageUrl: string) => {
+    if (imageUrl === currentlyDisplayedImageUrl) return;
 
     displayContainer.appendChild(imageLoader);
 
-    image.src = displayImageUrl;
+    image.src = imageUrl;
 
-    currentlyDisplayedImageUrl = displayImageUrl;
+    currentlyDisplayedImageUrl = imageUrl;
 
     if (image.complete) {
       fragment.appendChild(imageLoader);
@@ -43,6 +40,14 @@ const initProductQuoteDisplay = () => {
         { once: true }
       );
     }
+  };
+
+  const updateDisplayedImage = (radioButton: HTMLInputElement) => {
+    const displayImageUrl = radioButton.getAttribute("display-image")?.trim();
+
+    if (!displayImageUrl) return;
+
+    setImage(displayImageUrl);
   };
 
   if (image.complete) {
@@ -63,6 +68,21 @@ const initProductQuoteDisplay = () => {
     if (!radioButton) return;
 
     updateDisplayedImage(radioButton);
+  });
+
+  formWrapper.addEventListener("radio-deselected", (event) => {
+    const formStep = (event as CustomEvent)?.detail?.prevStep as HTMLFieldSetElement | null;
+
+    const checkedRadioButton = formStep?.querySelector<HTMLInputElement>(
+      "input[type=radio]:checked"
+    );
+
+    if (!checkedRadioButton) {
+      setImage(initialImageUrl);
+      return;
+    }
+
+    updateDisplayedImage(checkedRadioButton);
   });
 
   formWrapper.addEventListener("step-changed", (event) => {
